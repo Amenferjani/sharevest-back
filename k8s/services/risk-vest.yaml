@@ -1,0 +1,158 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: risk-vest-deployment
+  labels:
+    app: risk-vest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: risk-vest
+  template:
+    metadata:
+      labels:
+        app: risk-vest
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: risk-vest
+          image: amenferjani/risk-vest:prod
+          ports:
+            - containerPort: 3004
+          envFrom:
+            - configMapRef:
+                name: global-config
+            - secretRef:
+                name: global-secret
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            tcpSocket:
+              port: 3004
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 3004
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 3
+
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 2000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: risk-vest-service
+spec:
+  selector:
+    app: risk-vest
+  ports:
+    - protocol: TCP
+      port: 3004  
+      targetPort: 3004
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: risk-vest-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: risk-vest-deployment
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 60
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: risk-vest-mongo-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+      - name: mongo
+        image: mongo:latest
+        ports:
+        - containerPort: 27017
+        volumeMounts:
+        - name: risk-vest-mongo-storage
+          mountPath: var/lib/mongo/data
+      volumes:
+        - name: risk-vest-mongo-storage
+          persistentVolumeClaim:
+            claimName: risk-vest-mongo-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: risk-vest-mongo-service
+spec:
+  selector:
+    app: mongo
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: risk-vest-mongo-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-ebs
+  awsElasticBlockStore:
+    volumeID: <your-ebs-volume-id>
+    fsType: ext4
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: risk-vest-mongo-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests: 
+      storage: 5Gi
+  storageClassName: manual-ebs
+  volumeName: risk-vest-mongo-pv
+#todo : add EBS volume Id 
+

@@ -1,0 +1,157 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: private-vest-deployment
+  labels:
+    app: private-vest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: private-vest
+  template:
+    metadata:
+      labels:
+        app: private-vest
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: private-vest
+          image: amenferjani/private-vest:prod
+          ports:
+            - containerPort: 3006
+          envFrom:
+            - configMapRef:
+                name: global-config
+            - secretRef:
+                name: global-secret
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            tcpSocket:
+              port: 3006
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 3006
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 3
+
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 2000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: private-vest-service
+spec:
+  selector:
+    app: private-vest
+  ports:
+    - protocol: TCP
+      port: 3006  
+      targetPort: 3006
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: private-vest-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: private-vest-deployment
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 60
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: private-vest-postgres-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: private-vest-postgres
+  template:
+    metadata:
+      labels:
+        app: private-vest-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: private-vest-postgres-storage
+      volumes:
+        - name: private-vest-postgres-storage
+          persistentVolumeClaim:
+            claimName: private-vest-postgres-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: private-vest-postgres-service
+spec:
+  selector:
+    app: private-vest-postgres
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: private-vest-postgres-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-ebs
+  awsElasticBlockStore:
+    volumeID: <your-ebs-volume-id>
+    fsType: ext4
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: private-vest-postgres-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests: 
+      storage: 5Gi
+  storageClassName: manual-ebs
+  volumeName: private-vest-postgres-pv
+#todo : add EBS volume Id adjust 

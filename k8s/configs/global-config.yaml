@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: global-config
+data:
+  JWT_SECRET: 'hey2$H#0pL&9A!zqN{=8JhYgGDH8xyZtC85//2§?45DH5ZsXxUrZ'
+  NODE_ENV: "dev"
+  EMAIL_USER: "amenferjani25@gmail.com"
+  DB_HOST: user-postgres-service
+  PORTFOLIO_HOST: portfolio-postgres-service
+  DB_USERNAME: postgres
+  DB_PASSWORD: postgres_pass
+  DB_NAME: postgres
+  DB_SSL: "false"
+  DB_PORT: "5432"
+  STRIPE_SECRET_KEY: sk_test_51R9SQA4Co1tRP3fOGRDXE2tLfof9EpXTT3EzACSfTTb0hM2fYAoxYKhZQBUjzqas6xNd99mkvI7vd61iEJh9CwSJ00yUCw9klQ
+  WEBHOOK_SECRET_KEY: whsec_8afbcae9db578813849dee374842be66fb6c3e2800de1560b095e6c5ba26d310
+  GOOGLE_CALLBACK_URL: 'https://70af-197-28-109-91.ngrok-free.app'
+  GOOGLE_CLIENT_ID: '213201257092-jorgecs86jb2c1qt9q1r9vkdc4rretgn.apps.googleusercontent.com'
+  GOOGLE_CLIENT_SECRET: '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'
+  

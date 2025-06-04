@@ -1,0 +1,157 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: part-vest-deployment
+  labels:
+    app: part-vest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: part-vest
+  template:
+    metadata:
+      labels:
+        app: part-vest
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: part-vest
+          image: amenferjani/part-vest:prod
+          ports:
+            - containerPort: 3003
+          envFrom:
+            - configMapRef:
+                name: global-config
+            - secretRef:
+                name: global-secret
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            tcpSocket:
+              port: 3003
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 3003
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 3
+
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 2000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: part-vest-service
+spec:
+  selector:
+    app: part-vest
+  ports:
+    - protocol: TCP
+      port: 3003  
+      targetPort: 3003
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: part-vest-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: part-vest-deployment
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 60
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: part-vest-mongo-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+      - name: mongo
+        image: mongo:latest
+        ports:
+        - containerPort: 27017
+        volumeMounts:
+        - name: part-vest-mongo-storage
+          mountPath: var/lib/mongo/data
+      volumes:
+        - name: part-vest-mongo-storage
+          persistentVolumeClaim:
+            claimName: part-vest-mongo-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: part-vest-mongo-service
+spec:
+  selector:
+    app: mongo
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: part-vest-mongo-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-ebs
+  awsElasticBlockStore:
+    volumeID: <your-ebs-volume-id>
+    fsType: ext4
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: part-vest-mongo-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests: 
+      storage: 5Gi
+  storageClassName: manual-ebs
+  volumeName: part-vest-mongo-pv
+#todo : add EBS volume Id 

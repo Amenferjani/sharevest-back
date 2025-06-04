@@ -1,0 +1,12 @@
+[
+    "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA","^HSI", 
+    "NFLX", "DIS", "ADBE", "CRM", "NVDA", "META",
+    "JPM", "BAC", "V", "MA", "WFC", "AXP","^CAC",
+    "JNJ", "PFE", "MRK", "UNH", "ABBV","^DAX", 
+    "XOM", "CVX", "BP", "TOT", "DOT", "MATIC",
+    "BTC", "ETH", "BNB", "SOL", "XRP", "ADA",
+    "GC=F", "SI=F", "CL=F", "NG=F", "HG=F","IWM",
+    "SPY", "QQQ", "ARKK", "XLF", "XLK", "XLE","XLV",
+    "^GSPC", "^IXIC", "^DJI", "^FTSE", "^N225",
+    "KO", "PEP", "PG", "MCD", "WMT", "COST", "DOGE"
+]

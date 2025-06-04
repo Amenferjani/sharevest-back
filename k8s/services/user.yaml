@@ -1,0 +1,159 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-deployment
+  labels:
+    app: user
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user
+  template:
+    metadata:
+      labels:
+        app: user
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: user
+          image: amenferjani/user:latest
+          ports:
+            - containerPort: 3001
+          envFrom:
+            - configMapRef:
+                name: global-config
+            - secretRef:
+                name: global-secret
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            # limits:
+            #   cpu: "500m"
+            #   memory: "512Mi"
+      #     livenessProbe:
+      #       tcpSocket:
+      #         port: 3001
+      #       initialDelaySeconds: 5
+      #       periodSeconds: 10
+      #       failureThreshold: 3
+      #     readinessProbe:
+      #       tcpSocket:
+      #         port: 3001
+      #       initialDelaySeconds: 3
+      #       periodSeconds: 5
+      #       failureThreshold: 3
+
+      # securityContext:
+      #   runAsUser: 1000
+      #   fsGroup: 2000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+spec:
+  selector:
+    app: user
+  ports:
+    - protocol: TCP
+      port: 3001  
+      targetPort: 3001
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: user-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: user-deployment
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 60
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-postgres-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-postgres
+  template:
+    metadata:
+      labels:
+        app: user-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: global-secret
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: user-postgres-storage
+      volumes:
+        - name: user-postgres-storage
+          persistentVolumeClaim:
+            claimName: user-postgres-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-postgres-service
+spec:
+  selector:
+    app: user-postgres
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: user-postgres-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-hostpath
+  hostPath:
+    path: /run/desktop/mnt/host/c/Users/AMEN/Desktop/k8s-data/user-postgres
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: user-postgres-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: manual-hostpath
+  volumeName: user-postgres-pv

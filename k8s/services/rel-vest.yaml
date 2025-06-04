@@ -1,0 +1,157 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rel-vest-deployment
+  labels:
+    app: rel-vest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rel-vest
+  template:
+    metadata:
+      labels:
+        app: rel-vest
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: rel-vest
+          image: amenferjani/rel-vest:prod
+          ports:
+            - containerPort: 3007
+          envFrom:
+            - configMapRef:
+                name: global-config
+            - secretRef:
+                name: global-secret
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            tcpSocket:
+              port: 3007
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 3007
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 3
+
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 2000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rel-vest-service
+spec:
+  selector:
+    app: rel-vest
+  ports:
+    - protocol: TCP
+      port: 3007  
+      targetPort: 3007
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: rel-vest-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: rel-vest-deployment
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 60
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rel-vest-postgres-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rel-vest-postgres
+  template:
+    metadata:
+      labels:
+        app: rel-vest-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: rel-vest-postgres-storage
+      volumes:
+        - name: rel-vest-postgres-storage
+          persistentVolumeClaim:
+            claimName: rel-vest-postgres-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rel-vest-postgres-service
+spec:
+  selector:
+    app: rel-vest-postgres
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: rel-vest-postgres-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-ebs
+  awsElasticBlockStore:
+    volumeID: <your-ebs-volume-id>
+    fsType: ext4
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rel-vest-postgres-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests: 
+      storage: 5Gi
+  storageClassName: manual-ebs
+  volumeName: rel-vest-postgres-pv
+#todo : add EBS volume Id adjust 
