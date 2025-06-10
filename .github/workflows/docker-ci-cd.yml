@@ -1,0 +1,44 @@
+name: CI/CD - Build & Push Docker Images
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [
+          gateway,
+          hedge-vest,
+          part-vest,
+          payment-vest,
+          portfolio,
+          private-vest,
+          rel-vest,
+          risk-vest,
+          user
+        ]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and push Docker image for ${{ matrix.service }}
+      uses: docker/build-push-action@v5
+      with:
+        context: ./${{ matrix.service }}
+        file: ./${{ matrix.service }}/Dockerfile
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/${{ matrix.service }}:latest
