@@ -23,7 +23,7 @@ export class InvestorController {
     }
 
     @MessagePattern({ cmd: 'updateInvestor' })
-    @Roles(RoleEnum.ADMIN, RoleEnum.REL_INVESTOR)
+    @Roles(RoleEnum.USER, RoleEnum.ADMIN, RoleEnum.REL_INVESTOR)
     @UseGuards(RolesGuard)
     async updateInvestor(
         @Payload() payload: {
@@ -55,6 +55,17 @@ export class InvestorController {
     }) {
         const { filters } = payload;
         return this.investorService.getInvestors(filters);
+    }
+
+    @MessagePattern({ cmd: 'getInvestorByCompany' })
+    @Roles(RoleEnum.COMPANY_REPRESENTATIVE)
+    @UseGuards(RolesGuard)
+    async getInvestorsByCompany(@Payload() payload: {
+        companyId : string,
+        user: { userId: string, email: string, roles: { id: string, name: string } }
+    }) {
+        const { companyId } = payload;
+        return this.investorService.getInvestorsByCompany(companyId);
     }
 
     @MessagePattern({ cmd: 'getInvestorById' })

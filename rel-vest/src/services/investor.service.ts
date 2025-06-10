@@ -39,8 +39,19 @@ export class InvestorService {
         return this.investorRepository.find({ where: filters });
     }
 
+    async getInvestorsByCompany(companyId: string): Promise<Investor[]> {
+        return this.investorRepository
+            .createQueryBuilder("investor")
+            .leftJoinAndSelect("investor.companies", "company")
+            .leftJoinAndSelect("investor.events", "event")
+            .where("company.id = :companyId", { companyId })
+            .getMany();
+    }
+
+
+
     async getInvestorById(id: string): Promise<Investor>{
-        return await this.investorRepository.findOne({ where: { userId: id }, relations: ['companies'], });
+        return await this.investorRepository.findOne({ where: { userId: id }, relations: ['companies','events'], });
     }
 
     async linkInvestorToCompany(userId: string, companyId: string): Promise<Investor> {

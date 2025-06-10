@@ -237,7 +237,11 @@ export class UserService {
     }
 
     async findByGoogleId(googleId: string): Promise<User | undefined> {
-        console.log('find by google id ');
+        if (!googleId) {
+            console.log('no google id ');
+            return undefined;
+        }
+        console.log('find by google id ',googleId);
         return this.userRepo.findOne({
             where: { googleId },
             relations: ['role'],

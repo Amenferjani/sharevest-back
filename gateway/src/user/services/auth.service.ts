@@ -1,5 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
+import { ConflictException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class AuthService {
@@ -17,6 +17,16 @@ export class AuthService {
     }
 
     async handleGoogleLogin(user: any): Promise<any>{
-        return this.client.send({ cmd: 'google_callback' }, user).toPromise();
+        try {
+            return this.client.send({ cmd: 'google_callback' }, user).toPromise();
+        } catch (err) {
+            const error = err instanceof RpcException ? err.getError() : err;
+
+            if (error?.code === 409) {
+                throw new ConflictException(error.message);
+            }
+
+            throw new InternalServerErrorException('Something went wrong during Google login.');
+        }
     }
 }

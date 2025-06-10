@@ -58,15 +58,22 @@ export class EventController {
 
     @Post(':eventId/rsvp')
     @UseGuards(JwtAuthGuard)
-    async rsvpToEvent(@Req() req, @Param('eventId') eventId: string, @Body() body: { investorId: string }) {
+    async rsvpToEvent(@Req() req, @Param('eventId') eventId: string) {
         const user = req.user;
-        return this.eventService.rsvpToEvent(body.investorId, eventId, user);
+        return this.eventService.rsvpToEvent( eventId, user);
     }
 
-    @Delete(':eventId/rsvp/:investorId')
+    @Delete(':eventId/cancel-rsvp')
     @UseGuards(JwtAuthGuard)
-    async cancelRsvp(@Req() req, @Param('eventId') eventId: string, @Param('investorId') investorId: string) {
+    async cancelRsvp(@Req() req, @Param('eventId') eventId: string) {
         const user = req.user;
-        return this.eventService.cancelRsvp(investorId, eventId, user);
+        return this.eventService.cancelRsvp(eventId, user);
+    }
+
+    @Get('/investor/upcoming-events')
+    @UseGuards(JwtAuthGuard)
+    async getInvestorUpcomingEvents(@Req() req) {
+        const user = req.user;
+        return this.eventService.getUpcomingEventsForInvestor(user);
     }
 }

@@ -31,6 +31,11 @@ export class InvestorService {
         return this.client.send({ cmd: 'getInvestorById' }, { user }).toPromise();
     }
 
+    async getInvestorsByCompany(companyId: string, user: { userId: string, email: string, roles: { id: string, name: string } }) {
+        console.log("http investor by company ")
+        return this.client.send({ cmd: 'getInvestorByCompany' }, { companyId,user }).toPromise();
+    }
+
     async linkInvestorToCompany(companyId: string, 
         user: { userId: string, email: string, roles: { id: string, name: string } }) {
         return this.client.send({ cmd: 'linkInvestorToCompany' }, { companyId, user }).toPromise();
@@ -40,5 +45,6 @@ export class InvestorService {
         user: { userId: string, email: string, roles: { id: string, name: string } }) {
         return this.client.send({ cmd: 'unlinkInvestorFromCompany' }, { companyId, user }).toPromise();
     }
+    
 
 }

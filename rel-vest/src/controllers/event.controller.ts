@@ -98,25 +98,34 @@ export class EventController {
     @Roles(RoleEnum.USER, RoleEnum.ADMIN)
     @UseGuards(RolesGuard)
     async rsvpToEvent(@Payload() payload: {
-            investorId: string,
             eventId: string,
             user: { userId: string, email: string, roles: { id: string, name: string } }
         }
     ) {
-        const { investorId, eventId } = payload;
-        return this.eventService.rsvpToEvent(investorId, eventId);
+        const { user, eventId } = payload;
+        return this.eventService.rsvpToEvent(user.userId, eventId);
     }
 
     @MessagePattern({ cmd: 'cancel_rsvp' })
     @Roles(RoleEnum.PREMIUM_USER, RoleEnum.USER, RoleEnum.ADMIN)
     @UseGuards(RolesGuard)
     async cancelRsvp(@Payload() payload: {
-            investorId: string,
             eventId: string,
             user: { userId: string, email: string, roles: { id: string, name: string } }
         }
     ) {
-        const { investorId, eventId } = payload;
-        return this.eventService.cancelRsvp(investorId, eventId);
+        const { user, eventId } = payload;
+        return this.eventService.cancelRsvp(user.userId, eventId);
+    }
+
+    @MessagePattern({ cmd: 'getUpcomingEventsForInvestor' })
+    @Roles( RoleEnum.USER, RoleEnum.ADMIN)
+    @UseGuards(RolesGuard)
+    async getUpcomingEventsForInvestor (@Payload() payload: {
+            user: { userId: string, email: string, roles: { id: string, name: string } }
+        }
+    ) {
+        const { user } = payload;
+        return this.eventService.getUpcomingEventsForInvestor(user.userId);
     }
 }

@@ -28,6 +28,13 @@ export class InvestorController {
         return this.investorService.removeInvestor(id, user);
     }
 
+    @Get('company/:companyId')
+    @UseGuards(JwtAuthGuard)
+    async getInvestorsByCompany(@Req() req, @Param('companyId') companyId: string) {
+        const user = req.user;
+        return this.investorService.getInvestorsByCompany(companyId, user);
+    }
+
     @Get()
     @UseGuards(JwtAuthGuard)
     async getInvestors(@Req() req ,@Body() filters: any) {

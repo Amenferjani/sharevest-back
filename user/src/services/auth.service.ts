@@ -1,8 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from './user.service';
 import { User } from '@amenferjani/shared-lib';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class AuthService {
@@ -54,21 +55,29 @@ export class AuthService {
         const { email, id: googleId, name, picture } = googleUser;
 
         let user = await this.userService.findByGoogleId(googleId);
-        // if (!user) {
-        //     user = await this.userService.findByEmail(email);
-        // }
 
         if (!user) {
+            const existingEmailUser = await this.userService.findByEmail(email);
+            if (existingEmailUser) {
+                console.log("email already in use")
+                throw new RpcException({
+                    status: 'error',
+                    message: 'Email already in use',
+                    code: 409,
+                });
+            }
+
             user = await this.userService.register({
                 username: name,
                 email,
-                password: "",
-                googleId, 
-                picture, 
-                isEmailVerified : true
+                password: null,
+                googleId,
+                picture,
+                isEmailVerified: true,
             });
         }
-        console.log('USER FROM DB:', user);
+
         return user;
     }
+
 }

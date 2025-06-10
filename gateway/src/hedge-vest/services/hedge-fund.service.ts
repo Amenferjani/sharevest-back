@@ -16,9 +16,10 @@ export class HedgeFundService {
     }
 
     async getHedgeFunds(
+        filters: any,
         user: { userId: string, email: string, roles: { id: string, name: string } },
     ) :Promise<HedgeFund[]>{
-        return this.client.send('get-hedge-funds', {user}).toPromise();
+        return this.client.send('get-hedge-funds', { user, filters }).toPromise();
     }
 
     async getHedgeFundById(

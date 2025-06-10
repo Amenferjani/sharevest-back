@@ -19,12 +19,44 @@ export class HedgeFundService {
         return this.hedgeFundRepository.save(hedgeFund);
     }
 
-    async getHedgeFunds(): Promise<HedgeFund[]> {
-        return this.hedgeFundRepository.find();
+    async getHedgeFunds(filters?: any): Promise<HedgeFund[]> {
+        // return await this.hedgeFundRepository.find();
+        const query = this.hedgeFundRepository
+            .createQueryBuilder('fund')
+            .leftJoinAndSelect('fund.performanceMetrics', 'performanceMetrics');;
+
+        // Normalize "All" to undefined
+        const normalizedFilters = {
+            name: filters.name !== 'All' ? filters.name : undefined,
+            strategy: filters.strategy !== 'All' ? filters.strategy : undefined,
+            status: filters.status !== 'All' ? filters.status : undefined,
+            inceptionAfter: filters.inceptionAfter !== 'All' ? filters.inceptionAfter : undefined,
+        };
+
+        if (normalizedFilters.name) {
+            query.andWhere('fund.name ILIKE :name', { name: `%${normalizedFilters.name}%` });
+        }
+
+        if (normalizedFilters.strategy) {
+            query.andWhere('fund.strategy = :strategy', { strategy: normalizedFilters.strategy });
+        }
+
+        if (normalizedFilters.status) {
+            query.andWhere('fund.status = :status', { status: normalizedFilters.status });
+        }
+
+        if (normalizedFilters.inceptionAfter) {
+            query.andWhere('fund.inceptionDate > :inceptionAfter', {
+                inceptionAfter: normalizedFilters.inceptionAfter,
+            });
+        }
+
+        return query.getMany();
     }
 
+
     async getHedgeFundById(id: string): Promise<HedgeFund> {
-        const hedgeFund = await this.hedgeFundRepository.findOne({where:{id}});
+        const hedgeFund = await this.hedgeFundRepository.findOne({ where: { id }, relations: ['performanceMetrics']});
         if (!hedgeFund) {
             throw new NotFoundException('Hedge Fund not found');
         }
@@ -47,12 +79,7 @@ export class HedgeFundService {
         }
     }
 
-    async getHedgeFundDetails(id: string): Promise<any>{
-        const fund = this.getHedgeFundById(id);
-        const performanceMetrics = await this.performanceMetricService.getMetricsByHedgeFund(id);
-        return {
-            fund: fund,
-            performanceMetrics: performanceMetrics,
-        };
+    async getHedgeFundDetails(id: string): Promise<HedgeFund>{
+        return await this.getHedgeFundById(id);
     }
 }

@@ -14,20 +14,17 @@ import { PerformanceMetricController } from './controllers/performance-metric.co
 @Module({
     imports: [
         ConfigModule.forRoot({ isGlobal: true }),
-        TypeOrmModule.forRootAsync({
-            imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => ({
-                type: 'postgres',
-                host: configService.get('HEDGE_TYPEORM_HOST'),
-                port: configService.get<number>('HEDGE_TYPEORM_PORT'),
-                username: configService.get('HEDGE_TYPEORM_USERNAME'),
-                password: configService.get('HEDGE_TYPEORM_PASSWORD'),
-                database: configService.get('HEDGE_TYPEORM_DATABASE'),
-                synchronize: configService.get('HEDGE_TYPEORM_SYNCHRONIZE') === 'true',
-                ssl: configService.get('HEDGE_TYPEORM_SSL') === 'true',
-                entities:[HedgeFund,Investment,PerformanceMetric]
-            }),
-            inject: [ConfigService],
+        TypeOrmModule.forRoot({
+            type: 'postgres',
+            host: 'localhost',
+            port: 5436,
+            username: 'hedge_user',
+            password: 'hedge_pass',
+            database: 'hedge_db',
+            ssl: false,
+            entities: [HedgeFund,Investment,PerformanceMetric],
+            autoLoadEntities: true,
+            synchronize: true,
         }),
         TypeOrmModule.forFeature([HedgeFund,Investment,PerformanceMetric])
     ],

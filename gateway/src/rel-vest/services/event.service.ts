@@ -43,13 +43,18 @@ export class EventService {
         return this.client.send({ cmd: 'update_event_status' }, { id, status, user }).toPromise();
     }
 
-    async rsvpToEvent(investorId: string, eventId: string, 
+    async rsvpToEvent(eventId: string, 
         user: { userId: string, email: string, roles: { id: string, name: string } }) {
-        return this.client.send({ cmd: 'rsvp_to_event' }, { investorId, eventId, user }).toPromise();
+        return this.client.send({ cmd: 'rsvp_to_event' }, { eventId, user }).toPromise();
     }
 
-    async cancelRsvp(investorId: string, eventId: string, 
+    async cancelRsvp(eventId: string, 
         user: { userId: string, email: string, roles: { id: string, name: string } }) {
-        return this.client.send({ cmd: 'cancel_rsvp' }, { investorId, eventId, user }).toPromise();
+        return this.client.send({ cmd: 'cancel_rsvp' }, { eventId, user }).toPromise();
+    }
+
+    async getUpcomingEventsForInvestor(
+        user: { userId: string, email: string, roles: { id: string, name: string } }) {
+        return this.client.send({ cmd: 'getUpcomingEventsForInvestor' }, { user }).toPromise();
     }
 }

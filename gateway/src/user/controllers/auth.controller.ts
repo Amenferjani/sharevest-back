@@ -51,14 +51,14 @@ export class AuthController {
             secure: false,
             sameSite: 'strict', 
             path: '/',
-    });
+        });
 
-        // res.clearCookie('refresh_token', {
-        //     httpOnly: true,
-        //     secure: false,
-        //     sameSite: 'strict',
-        //     path: '/',
-        // });
+        res.clearCookie('refresh_token', {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'strict',
+            path: '/',
+        });
 
         return { message: 'Logged out successfully' };
     }
@@ -71,13 +71,24 @@ export class AuthController {
     @UseGuards(GoogleAuthGuard)
     async googleAuthRedirect(@Req() req, @Res() res) {
         console.log("google callback ", req.user);
-        // const user = await this.authService.handleGoogleLogin(req.user);
-        // res.cookie('access_token', user.access_token, {
-        //     httpOnly: true, 
-        //     secure: false, 
-        //     maxAge: 3600 * 1000,
-        //     sameSite: 'Strict',
-        // });
-        // res.json(user);
+        try {
+            const user = await this.authService.handleGoogleLogin(req.user);
+            res.cookie('access_token', user.access_token, {
+                httpOnly: true, 
+                secure: false, 
+                maxAge: 3600 * 1000,
+                sameSite: 'Strict',
+            });
+            res.cookie('refresh_token', user.refresh_token, {
+                httpOnly: true,
+                secure: false,
+                maxAge: 3600 * 1000,
+                sameSite: 'Strict',
+                path: '/',
+            });
+            res.json(user);
+        } catch (err: any) {
+            return res.redirect(`http://localhost:8080/login?error=${err.message}`);
+        }
     }
 }

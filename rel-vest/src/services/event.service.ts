@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { EventDto } from '@amenferjani/shared-lib';
 import { Investor } from '@amenferjani/shared-lib';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Event } from '@amenferjani/shared-lib';
 import { InvestorService } from './investor.service';
 
@@ -40,7 +40,7 @@ export class EventService {
     }
 
     async getEventDetails(id: string): Promise<Event> {
-        const event = await this.eventRepository.findOne({ where: { id } });
+        const event = await this.eventRepository.findOne({ where: { id },relations : ['company','investors'] });
         if (!event) {
             throw new NotFoundException('Event not found');
         }
@@ -65,20 +65,21 @@ export class EventService {
         return this.eventRepository.save(event);
     }
 
-    async rsvpToEvent(investorId: string, eventId: string): Promise<void> {
+    async rsvpToEvent(userId: string, eventId: string): Promise<void> {
         const event = await this.eventRepository.findOne({
             where: { id: eventId },
+            relations:['investors']
         });
         if (!event) {
             throw new NotFoundException('Event not found');
         }
 
-        const investor = await this.investorService.getInvestorById(investorId);
+        const investor = await this.investorService.getInvestorById(userId);
         if (!investor) {
             throw new NotFoundException('Investor not found');
         }
 
-        if (event.investors.some((inv) => inv.id === investorId)) {
+        if (event.investors.some((inv) => inv.id === investor.id)) {
             throw new BadRequestException('Investor has already RSVP for this event');
         }
 
@@ -86,25 +87,44 @@ export class EventService {
         await this.eventRepository.save(event);
     }
 
-    async cancelRsvp(investorId: string, eventId: string): Promise<void> {
+    async cancelRsvp(userId: string, eventId: string): Promise<void> {
         const event = await this.eventRepository.findOne({
             where: { id: eventId },
+            relations: ['investors']
         });
         if (!event) {
             throw new NotFoundException('Event not found');
         }
 
-        const investor = await this.investorService.getInvestorById(investorId);
+        const investor = await this.investorService.getInvestorById(userId);
         if (!investor) {
             throw new NotFoundException('Investor not found');
         }
 
-        const investorIndex = event.investors.findIndex((inv) => inv.id === investorId);
+        const investorIndex = event.investors.findIndex((inv) => inv.id === investor.id);
         if (investorIndex === -1) {
             throw new NotFoundException('Investor has not RSVP for this event');
         }
 
         event.investors.splice(investorIndex, 1);
         await this.eventRepository.save(event);
+    }
+
+    async getUpcomingEventsForInvestor(userId: string) {
+        const investor = await this.investorService.getInvestorById(userId);
+        if (!investor) {
+            throw new NotFoundException('Investor not found');
+        }
+
+        const companyIds = investor.companies.map((c) => c.id);
+
+        return this.eventRepository.find({
+            where: {
+                companyId: In(companyIds),
+                status: 'upcoming',
+            },
+            relations: ['company'],
+            order: { date: 'ASC' },
+        });
     }
 }

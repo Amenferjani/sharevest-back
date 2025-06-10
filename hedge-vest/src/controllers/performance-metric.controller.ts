@@ -8,7 +8,7 @@ export class PerformanceMetricController {
     constructor(private readonly performanceMetricService: PerformanceMetricService) {}
 
     @MessagePattern({cmd : 'create-performance-metric'})
-    @Roles(RoleEnum.ADMIN,RoleEnum.FUND_MANAGER)
+    @Roles(RoleEnum.ADMIN, RoleEnum.HEDGE_MANAGER)
     @UseGuards( RolesGuard)
     async createPerformanceMetric(@Payload() payload: {
         performanceMetricDto: PerformanceMetricDto,
@@ -28,7 +28,7 @@ export class PerformanceMetricController {
     }
 
     @MessagePattern({cmd:'get-metrics-by-hedge-fund'})
-    @Roles(RoleEnum.ADMIN,RoleEnum.FUND_MANAGER)
+    @Roles(RoleEnum.ADMIN,RoleEnum.HEDGE_MANAGER)
     @UseGuards( RolesGuard)
     async getMetricsByHedgeFund(@Payload() payload: {
         hedgeFundId: string,
@@ -39,7 +39,7 @@ export class PerformanceMetricController {
     }
 
     @MessagePattern({cmd:'update-performance-metric'})
-    @Roles(RoleEnum.ADMIN,RoleEnum.FUND_MANAGER)
+    @Roles(RoleEnum.ADMIN,RoleEnum.HEDGE_MANAGER)
     @UseGuards( RolesGuard)
     async updatePerformanceMetric(
         @Payload() payload: {
@@ -52,7 +52,7 @@ export class PerformanceMetricController {
     }
 
     @MessagePattern({cmd:'delete-performance-metric'})
-    @Roles(RoleEnum.ADMIN,RoleEnum.FUND_MANAGER)
+    @Roles(RoleEnum.ADMIN,RoleEnum.HEDGE_MANAGER)
     @UseGuards( RolesGuard)
     async deletePerformanceMetric(@Payload() payload: {
         id: string,
@@ -63,7 +63,7 @@ export class PerformanceMetricController {
     }
 
     @MessagePattern({cmd:'get-latest-performance-metrics'})
-    @Roles(RoleEnum.ADMIN,RoleEnum.FUND_MANAGER)
+    @Roles(RoleEnum.ADMIN,RoleEnum.HEDGE_MANAGER)
     @UseGuards( RolesGuard)
     async getLatestPerformanceMetrics(@Payload() payload: {
         hedgeFundId: string,
@@ -74,7 +74,7 @@ export class PerformanceMetricController {
     }
 
     @MessagePattern({ cmd: 'generate-performance-report'})
-    @Roles(RoleEnum.ADMIN,RoleEnum.FUND_MANAGER)
+    @Roles(RoleEnum.ADMIN,RoleEnum.HEDGE_MANAGER)
     @UseGuards( RolesGuard)
     async generatePerformanceReport(@Payload() Payload: {
         hedgeFundId: string,
@@ -85,7 +85,7 @@ export class PerformanceMetricController {
     }
 
     @MessagePattern({cmd:'track-performance-over-time'})
-    @Roles(RoleEnum.ADMIN,RoleEnum.FUND_MANAGER)
+    @Roles(RoleEnum.ADMIN,RoleEnum.HEDGE_MANAGER)
     @UseGuards( RolesGuard)
     async trackPerformanceOverTime(@Payload() payload: {
         hedgeFundId: string,

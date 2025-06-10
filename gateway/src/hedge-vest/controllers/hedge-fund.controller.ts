@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Patch, Delete, Param, Body, Req, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Delete, Param, Body, Req, UseGuards, Query } from '@nestjs/common';
 import { HedgeFundService } from '../services/hedge-fund.service';
 import { HedgeFund, HedgeFundDto, JwtAuthGuard } from '@amenferjani/shared-lib';
 
@@ -8,13 +8,15 @@ export class HedgeFundController {
     constructor(private readonly hedgeFundService: HedgeFundService) {}
 
     @Post()
-    async createHedgeFund(@Body() hedgeFundDto: HedgeFundDto, @Req() req) : Promise<HedgeFund>{
+    async createHedgeFund(@Body() hedgeFundDto: HedgeFundDto, @Req() req): Promise<HedgeFund>{
+        console.log("Creating hedge fund with this user:", req.user);
         return this.hedgeFundService.createHedgeFund(hedgeFundDto, req.user);
     }
 
-    @Get()
-    async getHedgeFunds(@Req() req) {
-        return this.hedgeFundService.getHedgeFunds(req.user);
+    @Get('filters')
+    async getHedgeFunds(@Req() req, @Query() filters?: any) {
+        console.log("filters",filters)
+        return this.hedgeFundService.getHedgeFunds(req.user, filters);
     }
 
     @Get(':id')

@@ -13,11 +13,18 @@ import { PerformanceMetricService } from './services/performance-metric.service'
             {
                 name: 'HEDGE_VEST_SERVICE',
                 transport: Transport.TCP,
-                options:{host :"hedge-vest-service",port : 3005}
+                options: { host: "127.0.0.1", port: 3005 }
             },
         ]),
     ],
-    controllers: [HedgeFundController,InvestmentController,PerformanceMetricController],
-    providers: [HedgeFundService,InvestmentService,PerformanceMetricService],
+    controllers: [
+        HedgeFundController,
+        // InvestmentController,
+        PerformanceMetricController
+    ],
+    providers: [
+        HedgeFundService,
+        //  InvestmentService,
+        PerformanceMetricService],
 })
-export class HedgeFundModule {}
+export class HedgeFundModule { }

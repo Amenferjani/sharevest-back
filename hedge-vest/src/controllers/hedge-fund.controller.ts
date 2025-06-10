@@ -11,7 +11,7 @@ export class HedgeFundController {
     constructor(private readonly hedgeFundService: HedgeFundService) {}
 
     @MessagePattern('create-hedge-fund')
-    @Roles(RoleEnum.ADMIN)
+    @Roles(RoleEnum.ADMIN,RoleEnum.HEDGE_MANAGER )
     @UseGuards(RolesGuard)
     async createHedgeFund(@Payload() payload: {
         hedgeFundDto: HedgeFundDto,
@@ -22,18 +22,19 @@ export class HedgeFundController {
     }
 
     @MessagePattern('get-hedge-funds')
-    @Roles(RoleEnum.ADMIN,RoleEnum.FUND_MANAGER)
-    @UseGuards(RolesGuard)
+    // @Roles(RoleEnum.ADMIN,RoleEnum.HEDGE_MANAGER)
+    // @UseGuards(RolesGuard)
     async getHedgeFunds(
         @Payload() payload: {
+            filters?: any,
             user: { userId: string, email: string, roles: { id: string, name: string } },
         }
     ) {
-        return this.hedgeFundService.getHedgeFunds();
+        return this.hedgeFundService.getHedgeFunds(payload.filters);
     }
 
     @MessagePattern('get-hedge-fund-by-id')
-    @Roles(RoleEnum.HEDGE_INVESTOR, RoleEnum.ADMIN,RoleEnum.FUND_MANAGER)
+    @Roles(RoleEnum.HEDGE_INVESTOR, RoleEnum.ADMIN,RoleEnum.HEDGE_MANAGER)
     @UseGuards(RolesGuard)
     async getHedgeFundById(@Payload() payload: {
         id: string,
@@ -44,7 +45,7 @@ export class HedgeFundController {
     }
 
     @MessagePattern('update-hedge-fund')
-    @Roles(RoleEnum.ADMIN,RoleEnum.FUND_MANAGER)
+    @Roles(RoleEnum.ADMIN,RoleEnum.HEDGE_MANAGER)
     @UseGuards(RolesGuard)
     async updateHedgeFund(
         @Payload() payload: {
@@ -58,7 +59,7 @@ export class HedgeFundController {
     }
 
     @MessagePattern('delete-hedge-fund')
-    @Roles(RoleEnum.ADMIN,RoleEnum.FUND_MANAGER)
+    @Roles(RoleEnum.ADMIN,RoleEnum.HEDGE_MANAGER)
     @UseGuards(RolesGuard)
     async deleteHedgeFund(@Payload() payload: {
         id: string,
@@ -69,7 +70,7 @@ export class HedgeFundController {
     }
 
     @MessagePattern('get-hedge-fund-details')
-    @Roles(RoleEnum.HEDGE_INVESTOR, RoleEnum.ADMIN,RoleEnum.FUND_MANAGER)
+    @Roles(RoleEnum.USER, RoleEnum.ADMIN,RoleEnum.HEDGE_MANAGER)
     @UseGuards(RolesGuard)
     async getHedgeFundDetails(@Payload() payload: {
         id: string,
