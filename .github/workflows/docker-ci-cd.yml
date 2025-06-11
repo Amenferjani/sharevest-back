@@ -5,9 +5,17 @@ on:
     branches:
       - main
 
+  workflow_dispatch:
+    inputs:
+      service:
+        description: 'Service to build (leave blank to build all)'
+        required: false
+        default: ''
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
         service: [
@@ -21,6 +29,10 @@ jobs:
           risk-vest,
           user
         ]
+      fail-fast: false
+
+    # Skip other services if a specific one is selected via manual trigger
+    if: ${{ github.event_name == 'push' || github.event.inputs.service == '' || matrix.service == github.event.inputs.service }}
 
     steps:
     - name: Checkout code
