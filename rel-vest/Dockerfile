@@ -23,6 +23,6 @@ RUN npm install --only=prod
 
 COPY . .
 
-COPY --from=development /usr/src/app/dist ./dist
+COPY --from=dev /usr/src/app/dist ./dist
 
 CMD ["sh", "-c", "if [ \"$NODE_ENV\" = \"dev\" ]; then npm run start:dev; else node dist/main; fi"]
