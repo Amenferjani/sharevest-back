@@ -1,36 +1,26 @@
-# ============================================
-# Base stage
-# ============================================
-FROM node:alpine AS base
-WORKDIR /usr/src/app
+FROM node:alpine AS dev
 
+WORKDIR /usr/src/app
 RUN npm install -g @nestjs/cli
 
 COPY package*.json ./
 COPY .npmrc ./
-
-# ============================================
-# Development Build
-# ============================================
-FROM base AS dev
-ENV NODE_ENV=development
-
+COPY tsconfig*.json ./
 RUN npm install
 
-COPY . .
-
+COPY . . 
 RUN npm run build
 
-CMD ["npm", "run", "start:dev"]
+FROM node:alpine AS prod
 
-# ============================================
-# Production Build
-# ============================================
-FROM base AS prod
-ENV NODE_ENV=production
+WORKDIR /usr/src/app
+RUN npm install -g @nestjs/cli
 
-RUN npm install --only=production
+COPY package*.json ./
+COPY .npmrc ./
+COPY tsconfig*.json ./
+RUN npm install --only=prod
 
 COPY --from=dev /usr/src/app/dist ./dist
 
-CMD ["node", "dist/main"]
+CMD ["sh", "-c", "if [ \"$NODE_ENV\" = \"dev\" ]; then npm run start:dev; else node dist/main; fi"]
