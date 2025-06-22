@@ -15,8 +15,17 @@ export class PerformanceMetricService {
     ) {}
 
     async createPerformanceMetric(performanceMetricDto: PerformanceMetricDto): Promise<PerformanceMetric> {
-        const performanceMetric = this.performanceMetricRepository.create(performanceMetricDto);
-        return this.performanceMetricRepository.save(performanceMetric);
+        console.log('DTO:', performanceMetricDto);
+        
+        const hedgeFund = await this.hedgeFundRepository.findOneByOrFail({ id: performanceMetricDto.hedgeFundId });
+        console.log('Hedge Fund:', hedgeFund);
+
+        const performanceMetric = this.performanceMetricRepository.create({
+            ...performanceMetricDto,
+            hedgeFund,
+        });
+
+        return await this.performanceMetricRepository.save(performanceMetric);
     }
 
     async getAllPerformanceMetrics(): Promise<PerformanceMetric[]> {

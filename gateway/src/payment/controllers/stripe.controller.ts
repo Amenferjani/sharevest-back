@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Post,Headers, Req, RawBodyRequest, UseGuards, Get, Delete, Param } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Post,Headers, Req, RawBodyRequest, UseGuards, Get, Delete, Param, Res } from '@nestjs/common';
 import { StripeService } from '../services/stripe.service';
 import { JwtAuthGuard } from '@amenferjani/shared-lib';
 
@@ -35,7 +35,8 @@ export class StripeController {
     // @UseGuards(JwtAuthGuard)
     async createCheckoutSession(
         @Req() req,
-        // @Body() data: { amount: number; currency: string; name: string; userId: string; email: string}
+        // @Body() data: { amount: number; currency: string; name: string; userId: string; email: string },
+        @Res() res,
     ) {
         const data = {
             amount: 1000,
@@ -46,8 +47,8 @@ export class StripeController {
             sessionId :'e8e22a4f-581e-4b7d-8ea2-8f1340ddc803'
         };
             return await this.stripeService.sendCreateCheckoutSession({...data , user : req.user});
-            // return { message: 'Checkout session created successfully' };
-        
+        // return { message: 'Checkout session created successfully' };
+        // res.redirect(request); 
     }
 
     @UseGuards(JwtAuthGuard)

@@ -8,23 +8,17 @@ import { PaymentTransaction } from '@amenferjani/shared-lib';
 @Module({
     imports: [
         ConfigModule.forRoot({ isGlobal: true }),
-        TypeOrmModule.forRootAsync({
-            imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => ({
-                type: 'postgres',
-                host: configService.get('TYPEORM_HOST'),
-                port: configService.get('TYPEORM_PORT'),
-                username: configService.get('TYPEORM_USERNAME'),
-                password: configService.get('TYPEORM_PASSWORD'),
-                database: configService.get('TYPEORM_DATABASE'),
-                synchronize: configService.get('TYPEORM_SYNCHRONIZE') === 'true',
-                ssl: configService.get('TYPEORM_SSL') === 'true'
-                    ? { rejectUnauthorized: false }
-                    : false,
-                entities: [PaymentTransaction],
-                autoLoadEntities: true, 
-            }),
-            inject: [ConfigService],
+        TypeOrmModule.forRoot({
+            type: 'postgres',
+            host: 'localhost',
+            port: 5438,
+            username: 'payment_user',
+            password: 'payment_pass',
+            database: 'payment_db',
+            ssl: false,
+            entities: [PaymentTransaction],
+            autoLoadEntities: true,
+            synchronize: true,
         }),
 
         TypeOrmModule.forFeature([PaymentTransaction]),

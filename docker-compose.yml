@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  gateway:
+    image: amenferjani/gateway:latest
+    ports:
+      - "3000:3000"
+      - "3030:3030"
+    restart: unless-stopped
+
+  user:
+    image: amenferjani/user:latest
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+
+  portfolio:
+    image: amenferjani/portfolio:latest
+    ports:
+      - "3002:3002"
+    restart: unless-stopped
+
+  part-vest:
+    image: amenferjani/part-vest:latest
+    ports:
+      - "3003:3003"
+    restart: unless-stopped
+
+  risk-vest:
+    image: amenferjani/risk-vest:latest
+    ports:
+      - "3004:3004"
+    restart: unless-stopped
+
+  hedge-vest:
+    image: amenferjani/hedge-vest:latest
+    ports:
+      - "3005:3005"
+    restart: unless-stopped
+
+  private-vest:
+    image: amenferjani/private-vest:latest
+    ports:
+      - "3006:3006"
+    restart: unless-stopped
+
+  rel-vest:
+    image: amenferjani/rel-vest:latest
+    ports:
+      - "3007:3007"
+    restart: unless-stopped
+
+  payment-vest:
+    image: amenferjani/payment-vest:latest
+    ports:
+      - "3008:3008"
+    restart: unless-stopped

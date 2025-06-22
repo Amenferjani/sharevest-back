@@ -15,6 +15,8 @@ export class PerformanceMetricController {
         user: { userId: string, email: string, roles: { id: string, name: string } },
     }) {
         const { performanceMetricDto } = payload;
+        console.log('DTO:', performanceMetricDto);
+
         return this.performanceMetricService.createPerformanceMetric(performanceMetricDto);
     }
 
